@@ -40,16 +40,29 @@ width:70%;
 button{
 padding:10px;
 }
+.logo{
+      width: 200px;
+    height: auto;
+    margin-top: 30px;
+    background-color: gold;
+}
 </style>
 </head>
 
 <body>
+<button onclick="talk()">New Chat</button>
+<div class "memory">
+</div>
+
+
 
 <h1>Propel AI</h1>
 
+<div class="logo">Propel AI</div>
+
 <div id="chat"></div>
 
-<input id="input" placeholder="Talk to Propel AI">
+<input id="input" placeholder="Ask Anthing">
 <button onclick="talk()">Send</button>
 
 <script>
@@ -59,9 +72,10 @@ let memory = [];
 let randomReplies = [
 "Interesting. Tell me more.",
 "Hmm… that makes me curious.",
-"I see what you mean.",
 "That’s fascinating!",
 "I'm thinking about that."
+"mmmmhhhhm."
+"ok"
 ];
 
 function keyboardSmash(text){
@@ -116,7 +130,7 @@ reply = "My name is Propel AI.";
 
 }
 
-else if(text.includes("remember")){
+else if(text.includes("remember when we were talking about "[ chats]"")){
 
 reply = "I remember " + memory.length + " things you said.";
 
@@ -127,6 +141,15 @@ else if(text.endsWith("?")){
 reply = "That's a good question. I'm still thinking about it.";
 
 }
+
+
+}
+
+else if(text.endsWith("!")){
+
+reply = " 😂. nice!
+
+
 
 else{
 
