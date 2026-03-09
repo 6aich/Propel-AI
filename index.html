@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Propel AI</title>
+
+<style>
+body{
+font-family: Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+padding:40px;
+}
+
+#chat{
+width:500px;
+margin:auto;
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+height:400px;
+overflow-y:auto;
+}
+
+.user{
+color:#38bdf8;
+margin:8px;
+}
+
+.ai{
+color:#a3e635;
+margin:8px;
+}
+
+input{
+padding:10px;
+width:70%;
+}
+
+button{
+padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Propel AI</h1>
+
+<div id="chat"></div>
+
+<input id="input" placeholder="Talk to Propel AI">
+<button onclick="talk()">Send</button>
+
+<script>
+
+let memory = [];
+
+let randomReplies = [
+"Interesting. Tell me more.",
+"Hmm… that makes me curious.",
+"I see what you mean.",
+"That’s fascinating!",
+"I'm thinking about that."
+];
+
+function keyboardSmash(text){
+return /^[asdfghjklqwertyuiopzxcvbnm]{6,}$/i.test(text);
+}
+
+function addMessage(text, type){
+
+let chat = document.getElementById("chat");
+
+let msg = document.createElement("div");
+
+msg.className = type;
+
+msg.innerText = text;
+
+chat.appendChild(msg);
+
+chat.scrollTop = chat.scrollHeight;
+
+}
+
+function talk(){
+
+let input = document.getElementById("input").value;
+
+if(!input) return;
+
+addMessage("You: " + input, "user");
+
+memory.push(input);
+
+let text = input.toLowerCase();
+
+let reply = "";
+
+if(keyboardSmash(text)){
+
+reply = "I can't seem to understand, but you must be mad!";
+
+}
+
+else if(text.includes("hello") || text.includes("hi")){
+
+reply = "Hello! I'm Propel AI.";
+
+}
+
+else if(text.includes("your name")){
+
+reply = "My name is Propel AI.";
+
+}
+
+else if(text.includes("remember")){
+
+reply = "I remember " + memory.length + " things you said.";
+
+}
+
+else if(text.endsWith("?")){
+
+reply = "That's a good question. I'm still thinking about it.";
+
+}
+
+else{
+
+reply = randomReplies[Math.floor(Math.random()*randomReplies.length)];
+
+}
+
+setTimeout(()=>{
+addMessage("Propel AI: " + reply, "ai");
+},500);
+
+document.getElementById("input").value = "";
+
+}
+
+</script>
+
+</body>
+</html>
