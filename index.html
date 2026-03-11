@@ -5,6 +5,8 @@
 
 <style>
 
+*{box-sizing:border-box;}
+
 body{
 margin:0;
 font-family:Arial;
@@ -17,30 +19,30 @@ color:white;
 /* SIDEBAR */
 
 #sidebar{
-width:220px;
+width:230px;
 background:#020617;
+padding:12px;
+border-right:1px solid #1e293b;
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+#sidebar button{
 padding:10px;
-overflow-y:auto;
-}
-
-#newChat{
-width:100%;
-padding:10px;
-margin-bottom:10px;
+border:none;
+border-radius:6px;
 cursor:pointer;
+font-weight:bold;
 }
 
-.chatItem{
-padding:8px;
-cursor:pointer;
-border-bottom:1px solid #1e293b;
-}
+#newChat{background:#38bdf8;}
+#learn{background:#22c55e;}
+#math{background:#a855f7;}
+#science{background:#f97316;}
+#quiz{background:#eab308;}
 
-.chatItem:hover{
-background:#1e293b;
-}
-
-/* MAIN CHAT AREA */
+/* MAIN */
 
 #main{
 flex:1;
@@ -48,34 +50,104 @@ display:flex;
 flex-direction:column;
 }
 
+/* CHAT */
+
 #chat{
 flex:1;
 overflow-y:auto;
 padding:20px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+/* MESSAGE */
+
+.message{
+padding:10px 14px;
+border-radius:12px;
+max-width:65%;
+position:relative;
+animation:fadeIn .2s ease;
 }
 
 .user{
-color:#38bdf8;
-margin:8px;
+background:#2563eb;
+align-self:flex-end;
 }
 
 .ai{
-color:#a3e635;
-margin:8px;
+background:#1e293b;
+align-self:flex-start;
 }
 
+.copy{
+position:absolute;
+top:4px;
+right:6px;
+cursor:pointer;
+font-size:12px;
+}
+
+/* INPUT */
+
 #inputArea{
+display:flex;
+gap:10px;
 padding:10px;
 background:#020617;
 }
 
-input{
-width:70%;
+#input{
+flex:1;
 padding:10px;
+border-radius:6px;
+border:none;
 }
 
-button{
+#send{
 padding:10px;
+background:#38bdf8;
+border:none;
+border-radius:6px;
+}
+
+#upload{
+width:40px;
+background:#22c55e;
+}
+
+/* PAGES */
+
+.page{
+display:none;
+padding:30px;
+overflow:auto;
+}
+
+.lesson{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+code{
+background:black;
+padding:6px;
+display:block;
+margin-top:10px;
+}
+
+.generated{
+max-width:300px;
+border-radius:10px;
+margin-top:10px;
+}
+
+@keyframes fadeIn{
+from{opacity:0; transform:translateY(5px);}
+to{opacity:1; transform:translateY(0);}
 }
 
 </style>
@@ -86,8 +158,10 @@ padding:10px;
 <div id="sidebar">
 
 <button id="newChat">➕ New Chat</button>
-
-<div id="chatList"></div>
+<button id="learn">📚 Learn Coding</button>
+<button id="math">🧮 Math</button>
+<button id="science">🔬 Science</button>
+<button id="quiz">🧠 Quiz</button>
 
 </div>
 
@@ -95,213 +169,283 @@ padding:10px;
 
 <div id="chat"></div>
 
+<div id="learnPage" class="page">
+
+<h1>Learn Coding</h1>
+
+<div class="lesson">
+<h2>HTML</h2>
+<p>HTML builds web pages.</p>
+<code>&lt;h1&gt;Hello World&lt;/h1&gt;</code>
+</div>
+
+<div class="lesson">
+<h2>Python</h2>
+<p>Python is easy to learn.</p>
+<code>print("Hello World")</code>
+</div>
+
+<div class="lesson">
+<h2>JavaScript</h2>
+<p>JavaScript makes websites interactive.</p>
+<code>alert("Hello")</code>
+</div>
+
+<div class="lesson">
+<h2>R</h2>
+<p>R is used for statistics.</p>
+<code>x <- c(1,2,3)</code>
+
+</div>
+</div>
+
+<div id="mathPage" class="page">
+<h1>Math Solver</h1>
+<p>Type a math problem in the chat like:</p>
+<code>5 * 7</code>
+</div>
+
+<div id="sciencePage" class="page">
+<h1>Science Facts</h1>
+<p>The Sun is a star.</p>
+<p>Water boils at 100°C.</p>
+<p>Gravity pulls objects together.</p>
+</div>
+
+<div id="quizPage" class="page">
+<h1>Quiz</h1>
+
+<p id="question">What planet is called the Red Planet?</p>
+
+<button onclick="answer('Mars')">Mars</button>
+<button onclick="answer('Earth')">Earth</button>
+<button onclick="answer('Venus')">Venus</button>
+
+<p id="result"></p>
+
+</div>
+
 <div id="inputArea">
+
+<button id="upload">+</button>
+
 <input id="input" placeholder="Talk to Propel AI">
-<button onclick="talk()">Send</button>
+
+<button id="send">Send</button>
+
+<input type="file" id="fileInput" style="display:none">
+
 </div>
 
 </div>
 
 <script>
 
-let chats = JSON.parse(localStorage.getItem("propelChats")) || {};
-let currentChat = null;
+/* MESSAGE */
 
-/* Create new chat */
+function addMessage(text,type){
 
-function newChat(){
+let chat=document.getElementById("chat");
 
-let id = "chat_" + Date.now();
+let msg=document.createElement("div");
 
-chats[id] = [];
+msg.className="message "+type;
 
-currentChat = id;
+msg.innerText=text;
 
-saveChats();
+let copy=document.createElement("span");
+copy.innerText="📋";
+copy.className="copy";
 
-renderChatList();
-
-loadChat();
-
-}
-
-/* Save chats */
-
-function saveChats(){
-
-localStorage.setItem("propelChats", JSON.stringify(chats));
-
-}
-
-/* Sidebar */
-
-function renderChatList(){
-
-let list = document.getElementById("chatList");
-
-list.innerHTML = "";
-
-for(let id in chats){
-
-let div = document.createElement("div");
-
-div.className = "chatItem";
-
-div.innerText = id;
-
-div.onclick = ()=>{
-
-currentChat = id;
-
-loadChat();
-
+copy.onclick=()=>{
+navigator.clipboard.writeText(text);
+copy.innerText="✔";
+setTimeout(()=>copy.innerText="📋",1000);
 };
 
-list.appendChild(div);
-
-}
-
-}
-
-/* Load chat */
-
-function loadChat(){
-
-let chatBox = document.getElementById("chat");
-
-chatBox.innerHTML = "";
-
-let messages = chats[currentChat];
-
-messages.forEach(msg=>{
-
-addMessage(msg.text,msg.type,false);
-
-});
-
-}
-
-/* Add message */
-
-function addMessage(text,type,save=true){
-
-let chat = document.getElementById("chat");
-
-let msg = document.createElement("div");
-
-msg.className = type;
-
-msg.innerText = text;
+msg.appendChild(copy);
 
 chat.appendChild(msg);
 
-chat.scrollTop = chat.scrollHeight;
-
-if(save){
-
-chats[currentChat].push({text,type});
-
-saveChats();
+chat.scrollTop=chat.scrollHeight;
 
 }
 
+/* IMAGE GENERATOR */
+
+function generateImage(prompt){
+
+let img=document.createElement("img");
+
+img.src="https://image.pollinations.ai/prompt/"+encodeURIComponent(prompt);
+
+img.className="generated";
+
+document.getElementById("chat").appendChild(img);
+
 }
 
-/* AI logic */
+/* AI BRAIN */
 
-function keyboardSmash(text){
+function ai(text){
 
-return /^[asdfghjklqwertyuiopzxcvbnm]{6,}$/i.test(text);
+text=text.toLowerCase();
+
+/* image generation */
+
+if(text.startsWith("generate image")){
+
+let prompt=text.replace("generate image","");
+
+addMessage("Generating image...","ai");
+
+generateImage(prompt);
+
+return;
 
 }
 
-let randomReplies = [
+/* math */
 
-"Interesting. Tell me more.",
-"Hmm… that makes me curious.",
-"I see what you mean.",
-"That's fascinating!",
-"I'm thinking about that."
+if(/^[0-9+\-*/ ().]+$/.test(text)){
 
+try{
+
+addMessage("Answer: "+eval(text),"ai");
+
+}catch{}
+
+return;
+
+}
+
+/* science */
+
+if(text.includes("gravity"))
+return addMessage("Gravity pulls objects together.","ai");
+
+/* coding */
+
+if(text.includes("html"))
+return addMessage("HTML builds web pages.","ai");
+
+/* quiz */
+
+if(text.includes("quiz"))
+return addMessage("Quiz: What planet is the Red Planet?","ai");
+
+/* normal */
+
+let replies=[
+"Interesting!",
+"Tell me more.",
+"I'm thinking about that.",
+"That sounds cool."
 ];
+
+addMessage(replies[Math.floor(Math.random()*replies.length)],"ai");
+
+}
+
+/* TALK */
 
 function talk(){
 
-let input = document.getElementById("input").value;
+let input=document.getElementById("input");
 
-if(!input || !currentChat) return;
+let text=input.value;
 
-addMessage("You: "+input,"user");
+if(!text) return;
 
-let text = input.toLowerCase();
+addMessage(text,"user");
 
-let reply="";
+input.value="";
 
-if(keyboardSmash(text)){
-
-reply="I can't seem to understand, but you must be mad!";
+setTimeout(()=>ai(text),600);
 
 }
 
-else if(text.includes("hello")){
+document.getElementById("send").onclick=talk;
 
-reply="Hello! I'm Propel AI.";
-
-}
-
-else if(text.includes("your name")){
-
-reply="My name is Propel AI.";
-
-}
-
-else if(text.endsWith("?")){
-
-reply="That's a good question.";
-
-}
-
-else{
-
-reply=randomReplies[Math.floor(Math.random()*randomReplies.length)];
-
-}
-
-setTimeout(()=>{
-
-addMessage("Propel AI: "+reply,"ai");
-
-},800);
-
-document.getElementById("input").value="";
-
-}
-
-/* ENTER key */
-
-document.getElementById("input").addEventListener("keypress",function(e){
-
+document.getElementById("input").addEventListener("keydown",e=>{
 if(e.key==="Enter") talk();
+});
+
+/* IMAGE UPLOAD */
+
+document.getElementById("upload").onclick=()=>{
+document.getElementById("fileInput").click();
+};
+
+document.getElementById("fileInput").addEventListener("change",function(){
+
+let file=this.files[0];
+
+if(!file) return;
+
+let reader=new FileReader();
+
+reader.onload=function(e){
+
+let img=document.createElement("img");
+
+img.src=e.target.result;
+
+img.className="generated";
+
+document.getElementById("chat").appendChild(img);
+
+};
+
+reader.readAsDataURL(file);
 
 });
 
-/* Button */
+/* SIDEBAR PAGES */
 
-document.getElementById("newChat").onclick=newChat;
+function hidePages(){
 
-/* Start */
+document.querySelectorAll(".page").forEach(p=>p.style.display="none");
 
-renderChatList();
+document.getElementById("chat").style.display="flex";
 
-if(Object.keys(chats).length===0){
+}
 
-newChat();
+document.getElementById("learn").onclick=()=>{
+hidePages();
+document.getElementById("chat").style.display="none";
+document.getElementById("learnPage").style.display="block";
+};
 
-}else{
+document.getElementById("math").onclick=()=>{
+hidePages();
+document.getElementById("chat").style.display="none";
+document.getElementById("mathPage").style.display="block";
+};
 
-currentChat=Object.keys(chats)[0];
+document.getElementById("science").onclick=()=>{
+hidePages();
+document.getElementById("chat").style.display="none";
+document.getElementById("sciencePage").style.display="block";
+};
 
-loadChat();
+document.getElementById("quiz").onclick=()=>{
+hidePages();
+document.getElementById("chat").style.display="none";
+document.getElementById("quizPage").style.display="block";
+};
+
+/* QUIZ */
+
+function answer(a){
+
+let result=document.getElementById("result");
+
+if(a==="Mars")
+result.innerText="Correct!";
+
+else
+result.innerText="Try again.";
 
 }
 
